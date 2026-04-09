@@ -88,14 +88,14 @@ async function agent(state: typeof MessagesAnnotation.State) {
 
 function shouldContinue(state: typeof MessagesAnnotation.State): string {
   const lastMsg = state.messages[state.messages.length - 1] as AIMessage;
-  return lastMsg.tool_calls?.length ? "tools" : "__end__";
+  return lastMsg.tool_calls?.length ? "tools" : END;
 }
 
 const graph = new StateGraph(MessagesAnnotation)
   .addNode("agent", agent)
   .addNode("tools", new ToolNode(tools))
   .addEdge(START, "agent")
-  .addConditionalEdges("agent", shouldContinue, ["tools", "__end__"])
+  .addConditionalEdges("agent", shouldContinue, ["tools", END])
   .addEdge("tools", "agent")
   .compile();
 

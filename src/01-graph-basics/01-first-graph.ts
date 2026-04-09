@@ -31,7 +31,7 @@ const model = new ChatGroq({
   maxTokens: 256,
 });
 
-// ── 2. Define a node ───────────────────────────────────────────────
+// ── 2. Define a node ─────────────────────────────────────────────── 
 // A node is just a function: (state) => stateUpdate
 // MessagesAnnotation gives us a `messages` array with a built-in
 // reducer that appends new messages automatically.
@@ -43,12 +43,12 @@ async function chatNode(state: typeof MessagesAnnotation.State) {
 // ── 3. Build the graph ─────────────────────────────────────────────
 //
 //   START ──→ chat ──→ END
-//
+// 
 const graph = new StateGraph(MessagesAnnotation)
   .addNode("chat", chatNode)     // Register the node
   .addEdge(START, "chat")        // START flows into "chat"
   .addEdge("chat", END)          // "chat" flows into END
-  .compile();                    // Lock it in — now it's executable
+  .compile();                    // Lock it in — now it 's executable
 
 // ── 4. Run the graph ───────────────────────────────────────────────
 const result = await graph.invoke({

@@ -3,14 +3,15 @@
  * ──────────────────────
  * Multi-Agent Content Pipeline — Main Application
  *
- * Combines ALL LangGraph concepts:
- * - StateGraph with custom Annotations and reducers
+ * Combines ALL modern LangGraph concepts:
+ * - StateGraph with Annotations + MessagesAnnotation.spec
+ * - Command routing (goto) — no conditional edges
+ * - addNode with { ends } declarations
  * - Multiple agent nodes (Supervisor, Researcher, Writer, Reviewer, Finalizer)
- * - Conditional edges (supervisor routing)
- * - Loops (revision cycle: writer → reviewer → writer)
+ * - Loops (revision cycle via Command routing)
  * - Tool integration (web search, fact checker)
- * - Memory/checkpoints (MemorySaver with thread_id)
- * - Streaming (watch the pipeline execute in real-time)
+ * - MemorySaver (short-term, per-thread) + InMemoryStore (long-term, cross-thread)
+ * - Streaming (watch pipeline execute in real-time)
  *
  * Run: npx ts-node --esm src/09-mini-project/app.ts
  */
@@ -20,10 +21,10 @@ import { buildContentPipeline } from "./graph.js";
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════╗");
-  console.log("║       Multi-Agent Content Pipeline                      ║");
-  console.log("║   Supervisor + Researcher + Writer + Reviewer           ║");
-  console.log("║   Built with LangGraph                                  ║");
-  console.log("╚═══��═══════════════════════════════════════════════════��══╝");
+  console.log("║       Multi-Agent Content Pipeline (v1.x)               ║");
+  console.log("║   Command Routing + InMemoryStore + Agent Handoffs      ║");
+  console.log("║   Built with LangGraph v1.2                             ║");
+  console.log("╚══════════════════════════════════════════════════════════╝");
 
   const pipeline = buildContentPipeline();
   const config = { configurable: { thread_id: "content-session-1" } };
@@ -39,9 +40,8 @@ async function main() {
     { ...config, streamMode: "updates" }
   );
 
-  for await (const update of stream) {
-    const [nodeName] = Object.entries(update);
-    // The streaming is handled by console.logs in agent functions
+  for await (const _update of stream) {
+    // Streaming is handled by console.logs in agent functions
   }
 
   // ── Phase 2: Inspect final state ─────────────────────────────────
@@ -49,7 +49,7 @@ async function main() {
   const state = finalState.values;
 
   console.log("\n" + "═".repeat(60));
-  console.log("�� PIPELINE RESULTS");
+  console.log("📊 PIPELINE RESULTS");
   console.log("═".repeat(60));
 
   console.log("\n📋 Status:", state.status);
@@ -65,9 +65,9 @@ async function main() {
   console.log("─".repeat(60));
   console.log(state.finalContent || state.draft);
 
-  // ── Phase 3: Run a second request (same session) ─────────────────
+  // ── Phase 3: Second request (demonstrates cross-thread store) ────
   console.log("\n\n" + "═".repeat(60));
-  console.log("📌 SECOND REQUEST (same session)");
+  console.log("📌 SECOND REQUEST (new thread, shared long-term memory)");
   console.log("═".repeat(60));
 
   const config2 = { configurable: { thread_id: "content-session-2" } };
@@ -85,8 +85,8 @@ async function main() {
 
   // ── Stats ────────────────────────────────────────────────────────
   console.log("\n\n📊 Final Stats:");
-  console.log(`   Session 1 - Status: ${state.status}, Iterations: ${state.iteration}`);
-  console.log(`   Session 2 - Status: ${result2.status}, Iterations: ${result2.iteration}`);
+  console.log(`   Session 1 — Status: ${state.status}, Iterations: ${state.iteration}`);
+  console.log(`   Session 2 — Status: ${result2.status}, Iterations: ${result2.iteration}`);
   console.log("\n✅ Multi-Agent Content Pipeline complete!");
 }
 

@@ -7,6 +7,8 @@
  * - createReactAgent(): Prebuilt agent that handles the entire loop
  * - Automatically creates: model node → tool check → tool node → loop
  * - Supports: memory (checkpointer), tool approval, system prompt
+ * - `prompt` parameter: pass a string OR a function for dynamic prompts
+ *   (replaces older `stateModifier` — both work, but `prompt` is preferred)
  * - Use this when you want a standard agent without custom graph logic
  * - Use custom StateGraph when you need special routing or multi-agent
  *
@@ -68,7 +70,9 @@ const agent = createReactAgent({
   llm: model,
   tools: [getWeather, getNews],
   // Optional: system prompt to customize behavior
-  stateModifier: "You are a helpful travel assistant. Be concise and friendly.",
+  // `prompt` replaces the older `stateModifier` (both still work)
+  // Can be a string OR a function: (state) => BaseMessageLike[]
+  prompt: "You are a helpful travel assistant. Be concise and friendly.",
   // Optional: add memory
   checkpointSaver: new MemorySaver(),
 });

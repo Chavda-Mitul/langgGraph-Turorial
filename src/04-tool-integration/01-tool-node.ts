@@ -94,7 +94,7 @@ function shouldCallTools(state: typeof MessagesAnnotation.State): string {
     return "tools";
   }
 
-  return "__end__";
+  return END;
 }
 
 // ── 5. Build the agent graph ───────────────────────────────────────
@@ -107,7 +107,7 @@ const graph = new StateGraph(MessagesAnnotation)
   .addNode("agent", agentNode)
   .addNode("tools", toolNode)
   .addEdge(START, "agent")
-  .addConditionalEdges("agent", shouldCallTools, ["tools", "__end__"])
+  .addConditionalEdges("agent", shouldCallTools, ["tools", END])
   .addEdge("tools", "agent")  // After tools, go back to agent
   .compile();
 

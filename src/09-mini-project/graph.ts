@@ -1,9 +1,9 @@
 /**
  * 09-mini-project/graph.ts
  * ─────────────────────────
- * The graph definition: wires all agents together.
+ * The graph definition using modern Command-based routing.
  *
- * Architecture (Supervisor Pattern):
+ * Architecture (Supervisor Pattern with Command routing):
  *
  *                    ┌──→ researcher ──┐
  *                    │                  │
@@ -12,6 +12,11 @@
  *              │       └──→ reviewer ──────┘
  *              │
  *              └──→ finalizer ──→ END
+ *
+ * Key difference from old pattern:
+ * - No addConditionalEdges() — agents return Command({ goto }) directly
+ * - addNode with { ends: [...] } declares possible destinations
+ * - InMemoryStore for cross-session article history
  */
 
 import {
@@ -19,6 +24,7 @@ import {
   START,
   END,
   MemorySaver,
+  InMemoryStore,
 } from "@langchain/langgraph";
 import { ContentPipelineState } from "./state.js";
 import {
@@ -29,51 +35,29 @@ import {
   finalizerAgent,
 } from "./agents.js";
 
-// ── Router: reads nextAgent from state ─────────────────────────────
-function routeNext(state: typeof ContentPipelineState.State): string {
-  switch (state.nextAgent) {
-    case "researcher": return "researcher";
-    case "writer": return "writer";
-    case "reviewer": return "reviewer";
-    case "finalizer": return "finalizer";
-    case "done": return "__end__";
-    default: return "supervisor";
-  }
-}
-
-// ── Build the graph ───────��────────────────────────────────────────
+// ── Build the graph ────────────────────────────────────────────────
 export function buildContentPipeline() {
   const graph = new StateGraph(ContentPipelineState)
-    // Register all agent nodes
-    .addNode("supervisor", supervisorAgent)
-    .addNode("researcher", researcherAgent)
-    .addNode("writer", writerAgent)
-    .addNode("reviewer", reviewerAgent)
+    // Supervisor uses Command to route — declare possible destinations with `ends`
+    .addNode("supervisor", supervisorAgent, {
+      ends: ["researcher", "writer", "reviewer", "finalizer"],
+    })
+    // Workers use Command to go back to supervisor
+    .addNode("researcher", researcherAgent, { ends: ["supervisor"] })
+    .addNode("writer", writerAgent, { ends: ["supervisor"] })
+    .addNode("reviewer", reviewerAgent, { ends: ["supervisor"] })
+    // Finalizer returns plain state update — uses normal edge to END
     .addNode("finalizer", finalizerAgent)
 
-    // Entry: start with supervisor
+    // Entry point
     .addEdge(START, "supervisor")
-
-    // Supervisor decides who goes next (conditional routing)
-    .addConditionalEdges("supervisor", routeNext, [
-      "researcher",
-      "writer",
-      "reviewer",
-      "finalizer",
-      "__end__",
-    ])
-
-    // All workers report back to supervisor
-    .addEdge("researcher", "supervisor")
-    .addEdge("writer", "supervisor")
-    .addEdge("reviewer", "supervisor")
-
-    // Finalizer ends the pipeline
+    // Only finalizer needs a static edge (others use Command)
     .addEdge("finalizer", END)
 
-    // Compile with memory
+    // Compile with both short-term and long-term memory
     .compile({
-      checkpointer: new MemorySaver(),
+      checkpointer: new MemorySaver(),    // Thread-level state
+      store: new InMemoryStore(),          // Cross-thread article history
     });
 
   return graph;

@@ -82,7 +82,7 @@ async function reviewer(state: typeof WritingState.State) {
 function shouldContinue(state: typeof WritingState.State): string {
   // Stop if approved OR we've done 3 revisions (safety limit)
   if (state.approved || state.revision >= 3) {
-    return "__end__";
+    return END;
   }
   return "writer"; // Loop back!
 }
@@ -93,7 +93,7 @@ const graph = new StateGraph(WritingState)
   .addNode("reviewer", reviewer)
   .addEdge(START, "writer")
   .addEdge("writer", "reviewer")
-  .addConditionalEdges("reviewer", shouldContinue, ["writer", "__end__"])
+  .addConditionalEdges("reviewer", shouldContinue, ["writer", END])
   .compile();
 
 // ── 6. Run ─────────────────────────────────────────────────────────

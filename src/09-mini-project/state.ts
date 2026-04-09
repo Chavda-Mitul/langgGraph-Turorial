@@ -3,27 +3,20 @@
  * ─────────────────────────
  * State definition for the Multi-Agent Content Pipeline.
  *
- * The state flows through: Supervisor → Researcher → Writer → Reviewer → (loop or done)
+ * Uses modern LangGraph patterns:
+ * - MessagesAnnotation.spec for message handling
+ * - Custom fields with reducers for tracking pipeline progress
+ * - Command routing (no nextAgent field needed — Command handles routing)
  */
 
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
 
 export const ContentPipelineState = Annotation.Root({
-  // Chat messages for agent communication
-  messages: Annotation<BaseMessage[]>({
-    reducer: (existing, update) => [...existing, ...update],
-    default: () => [],
-  }),
+  // Inherit messages with built-in reducer from MessagesAnnotation
+  ...MessagesAnnotation.spec,
 
   // User's original request
   request: Annotation<string>(),
-
-  // Which agent should act next (decided by supervisor)
-  nextAgent: Annotation<string>({
-    reducer: (_, b) => b,
-    default: () => "supervisor",
-  }),
 
   // Research data gathered
   research: Annotation<string>({

@@ -5,7 +5,9 @@
  *
  * Key Concepts:
  * - createReactAgent can use MessagesAnnotation extended with custom fields
- * - stateModifier: Customize the system prompt dynamically from state
+ * - `prompt` as a FUNCTION: dynamically build system prompt from state
+ *   (replaces older `stateModifier` — `prompt` is the modern approach)
+ * - `stateSchema`: Tell the agent about your custom state shape
  * - Combine prebuilt convenience with custom state tracking
  *
  * Run: npx ts-node --esm src/08-prebuilt-agents/02-agent-with-state.ts
@@ -17,7 +19,7 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver, MessagesAnnotation, Annotation } from "@langchain/langgraph";
-import { HumanMessage } from "@langchain/core/messages";
+import { HumanMessage, type BaseMessageLike } from "@langchain/core/messages";
 
 // ── 1. Tools ───────────────────────────────────────────────────────
 const searchDocs = tool(
@@ -50,18 +52,37 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// ── 3. Create agent with state modifier ────────────────────────────
+// ── 3. Create agent with DYNAMIC prompt (function-based) ──────────
 const model = new ChatGroq({
   model: "llama-3.3-70b-versatile",
   temperature: 0.5,
   maxTokens: 300,
 });
 
+// The `prompt` parameter as a function receives state and returns messages.
+// This is more powerful than a static string — you can personalize responses.
 const agent = createReactAgent({
   llm: model,
   tools: [searchDocs],
-  // System prompt for the agent
-  stateModifier: "You are a LangGraph tutor. Use the search_docs tool to answer technical questions. Be encouraging and educational.",
+  // `prompt` as a function: build system prompt dynamically from state
+  // The function receives the full state (including custom fields) and
+  // returns the messages array to send to the LLM.
+  prompt: (state) => {
+    // Access custom state fields — TypeScript infers the type from stateSchema
+    const name = (state as any).username || "learner";
+    const qCount = (state as any).questionsAsked || 0;
+    return [
+      {
+        role: "system" as const,
+        content: `You are a LangGraph tutor helping ${name}. ` +
+          `They have asked ${qCount} question(s) so far. ` +
+          `Use the search_docs tool to answer technical questions. Be encouraging and educational.`,
+      },
+      ...state.messages,
+    ];
+  },
+  // `stateSchema` tells the agent about our custom state shape
+  stateSchema: AgentState,
   checkpointSaver: new MemorySaver(),
 });
 
@@ -70,21 +91,25 @@ console.log("=== Agent with Custom State ===\n");
 
 const config = { configurable: { thread_id: "tutor-session-1" } };
 
-// Question 1
+// Question 1 — passing custom state fields
 console.log("--- Q1 ---");
 let result = await agent.invoke(
   {
     messages: [new HumanMessage("How do I define state in LangGraph?")],
+    username: "Mansi",
+    questionsAsked: 1,
   },
   config
 );
 console.log("Tutor:", result.messages[result.messages.length - 1].content);
 
 // Question 2 — agent remembers context from Q1 via checkpointer
+// Note: questionsAsked uses a REDUCER (a + b), so it accumulates!
 console.log("\n--- Q2 ---");
 result = await agent.invoke(
   {
     messages: [new HumanMessage("What about edges? How do conditional edges work?")],
+    questionsAsked: 1,  // Adds to existing count (reducer: a + b = 2)
   },
   config
 );
