@@ -1,0 +1,37 @@
+{
+  "name": "langgraph-tutorial",
+  "version": "1.0.0",
+  "description": "Comprehensive LangGraph tutorial project in TypeScript",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node --esm src/index.ts",
+    "run": "ts-node --esm"
+  },
+  "keywords": [
+    "langgraph",
+    "langchain",
+    "typescript",
+    "tutorial",
+    "agents",
+    "graphs"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/community": "^1.1.27",
+    "@langchain/core": "^1.1.39",
+    "@langchain/groq": "^1.2.0",
+    "@langchain/langgraph": "^0.2.74",
+    "cheerio": "^1.0.0",
+    "dotenv": "^17.4.0",
+    "langchain": "^1.3.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  }
+}
