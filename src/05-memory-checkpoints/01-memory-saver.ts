@@ -91,3 +91,4 @@ const state1 = await graph.getState(thread1);
 const state2 = await graph.getState(thread2);
 console.log(`Thread 1 messages: ${state1.values.messages.length}`);
 console.log(`Thread 2 messages: ${state2.values.messages.length}`);
+

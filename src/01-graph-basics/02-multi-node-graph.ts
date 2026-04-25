@@ -59,7 +59,7 @@ async function analyzer(state: typeof ResearchState.State) {
   return { analysis: response.content as string };
 }
 
-// ── 4. Build the sequential graph ──────────────────────────────────
+// ── 4. Build the sequential graph ──
 //
 //   START ──→ researcher ──→ analyzer ──→ END
 //

@@ -89,8 +89,8 @@ const graph = new StateGraph(DebateState)
   // End
   .addEdge("summarizer", END)
   .compile();
-
-// ── 4. Run ─────────────────────────────────────────────────────────
+  
+// ── 4. Run ──
 const result = await graph.invoke({
   topic: "Using AI agents in production applications",
 });

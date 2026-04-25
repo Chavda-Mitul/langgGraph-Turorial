@@ -20,7 +20,7 @@ import {
   END,
 } from "@langchain/langgraph";
 
-// ── 1. Append reducer (accumulate items) ───────────────────────────
+// ── 1. Append reducer (accumulate items) ──
 const LogState = Annotation.Root({
   // Every update appends to the array (like messages)
   logs: Annotation<string[]>({
