@@ -1,0 +1,150 @@
+[33mWARNING[0m:  [25-04-2026 16:52:17] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[32mINFO[0m:     [25-04-2026 16:52:17] Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+[36mDEBUG[0m:    [25-04-2026 16:52:17] Starting component System
+[36mDEBUG[0m:    [25-04-2026 16:52:17] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [25-04-2026 16:52:17] Starting component SqliteDB
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component Posthog
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component LocalExecutor
+[36mDEBUG[0m:    [25-04-2026 16:52:18] Starting component SegmentAPI
+[32mINFO[0m:     [25-04-2026 16:52:18] Started server process [[36m28820[0m]
+[32mINFO[0m:     [25-04-2026 16:52:18] Waiting for application startup.
+[32mINFO[0m:     [25-04-2026 16:52:18] Application startup complete.
+[32mINFO[0m:     [25-04-2026 16:52:18] Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [25-04-2026 16:52:45] ::1:62941 - "DELETE /api/v2/tenants/default_tenant/databases/default_database/collections/rag_docs HTTP/1.1" 400
+[31mERROR[0m:    [25-04-2026 16:52:46] '_type'
+Traceback (most recent call last):
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 157, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\python37\Lib\site-packages\chromadb\server\fastapi\__init__.py", line 107, in catch_exceptions_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "C:\python37\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "C:\python37\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\chromadb\server\fastapi\__init__.py", line 131, in check_http_version_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "C:\python37\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\python37\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\python37\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\python37\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\python37\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\python37\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 134, in async_wrapper
+    return await f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\chromadb\server\fastapi\__init__.py", line 684, in create_collection
+    await to_thread.run_sync(
+  File "C:\python37\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\chromadb\server\fastapi\__init__.py", line 658, in process_create_collection
+    else CollectionConfigurationInternal.from_json(create.configuration)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\site-packages\chromadb\api\configuration.py", line 209, in from_json
+    f"Trying to instantiate configuration of type {cls.__name__} from JSON with type {json_map['_type']}"
+                                                                                      ~~~~~~~~^^^^^^^^^
+KeyError: '_type'
+[32mINFO[0m:     [25-04-2026 16:52:46] ::1:62942 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 500
+[32mINFO[0m:     [25-04-2026 16:54:05] Shutting down
+[32mINFO[0m:     [25-04-2026 16:54:06] Finished server process [[36m28820[0m]
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component System
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component SegmentAPI
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component LocalExecutor
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component LocalSegmentManager
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component Posthog
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component SqliteDB
+[36mDEBUG[0m:    [25-04-2026 16:54:06] Stopping component OpenTelemetryClient
+[31mERROR[0m:    [25-04-2026 16:54:06] Traceback (most recent call last):
+  File "C:\python37\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+  File "C:\python37\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\python37\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+  File "C:\python37\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+  File "C:\python37\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\python37\Lib\site-packages\uvicorn\server.py", line 68, in serve
+    with self.capture_signals():
+  File "C:\python37\Lib\contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "C:\python37\Lib\site-packages\uvicorn\server.py", line 332, in capture_signals
+    signal.raise_signal(captured_signal)
+  File "C:\python37\Lib\asyncio\runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\python37\Lib\site-packages\starlette\routing.py", line 700, in lifespan
+    await receive()
+  File "C:\python37\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\python37\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+

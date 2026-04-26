@@ -35,7 +35,7 @@ const model = new ChatGroq({
   maxTokens: 300,
 });
 
-// ── 1. State ───────────────────────────────────────────────────────
+// ── 1. State ──
 const ApprovalState = Annotation.Root({
   request: Annotation<string>(),
   plan: Annotation<string>(),
@@ -46,7 +46,7 @@ const ApprovalState = Annotation.Root({
   result: Annotation<string>(),
 });
 
-// ── 2. Planner creates a plan ──────────────────────────────────────
+// ── 2. Planner creates a plan ──
 async function planner(state: typeof ApprovalState.State) {
   console.log("📋 Planning:", state.request);
   const res = await model.invoke(
@@ -55,7 +55,7 @@ async function planner(state: typeof ApprovalState.State) {
   return { plan: res.content as string };
 }
 
-// ── 3. Human review node — pauses for approval ─────────────────────
+// ── 3. Human review node — pauses for approval ──
 async function humanReview(state: typeof ApprovalState.State) {
   console.log("\n⏸️  Graph paused! Waiting for human approval...\n");
 
@@ -70,7 +70,7 @@ async function humanReview(state: typeof ApprovalState.State) {
   return { approved };
 }
 
-// ── 4. Executor runs the plan ──────────────────────────────────────
+// ── 4. Executor runs the plan ──
 async function executor(state: typeof ApprovalState.State) {
   if (!state.approved) {
     return { result: "❌ Plan was rejected. No action taken." };
@@ -82,7 +82,7 @@ async function executor(state: typeof ApprovalState.State) {
   return { result: res.content as string };
 }
 
-// ── 5. Build graph ─────────────────────────────────────────────────
+// ── 5. Build graph ──
 const checkpointer = new MemorySaver();
 
 const graph = new StateGraph(ApprovalState)
@@ -95,7 +95,7 @@ const graph = new StateGraph(ApprovalState)
   .addEdge("executor", END)
   .compile({ checkpointer });
 
-// ── 6. Run with interrupt and resume ───────────────────────────────
+// ── 6. Run with interrupt and resume ──
 const config = { configurable: { thread_id: "approval-demo" } };
 
 console.log("=== Human-in-the-Loop: Approval Workflow ===\n");

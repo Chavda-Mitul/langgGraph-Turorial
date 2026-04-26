@@ -101,7 +101,7 @@ for await (const snapshot of history) {
   if (snapshotCount >= 4) break; // Limit output
 }
 
-// ── 4. Update state externally ─────────────────────────────────────
+// ── 4. Update state externally ──
 console.log("\n--- External State Update ---");
 console.log("Before:", (await graph.getState(config)).values.status);
 
