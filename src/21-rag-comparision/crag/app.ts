@@ -6,13 +6,12 @@ import { ChatGroq } from "@langchain/groq";
 import { Annotation, StateGraph, START, END } from "@langchain/langgraph";
 import z from "zod";
 import { tavily } from "@tavily/core";
-import { webSearch } from "../../09-mini-project/tools";
 
 
 const UPPER_TH = 0.7
 const LOWER_TH = 0.3
 
-const model = new ChatGroq({ model: "llama-3.3-70b-versatile", temperature: 0.4, maxTokens:300 });
+const model = new ChatGroq({ model: "llama-3.3-70b-versatile", temperature: 0.4, maxTokens:100 });
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
 
 const GraphState = Annotation.Root({
@@ -28,6 +27,7 @@ const GraphState = Annotation.Root({
     refined_context: Annotation<string>,
 
     web_docs: Annotation<string[]>,
+    web_query: Annotation<string>,
 
     answer: Annotation<string>,
 });
@@ -68,7 +68,7 @@ const collection = await client.getOrCreateCollection({ name: "rag_docs" });
 const retrieveNode = async (state: typeof GraphState.State) => {
     const results = await collection.query({
         queryTexts: [state.question],
-        nResults: 5,
+        nResults: 3,
     });
     const docs = results.documents[0] as string[];
     return { docs };
@@ -164,8 +164,9 @@ const stripFilterSchmema = z.object({
 const filterModel = model.withStructuredOutput(stripFilterSchmema);
 
 const filterNode = async (state: typeof GraphState.State) => {
-    const sourceDocs = state.verdict === 'CORRECT' ? state.good_docs : state.web_docs;
+    const sourceDocs = state.verdict === 'CORRECT' ? state.good_docs : (state.web_docs ?? []);
     const strips = sourceDocs.flatMap(doc => decomposeToSentences(doc));
+    console.log('strips',strips);
 
     const results = await Promise.all(
         strips.map(sentence => filterModel.invoke(`
@@ -182,49 +183,71 @@ const filterNode = async (state: typeof GraphState.State) => {
     return { strips, kept_strips, refined_context };
 };
 
-const getDocsFromWebSearch = async (state: typeof GraphState.State) => {
-     const search = await tvly.search(`${state.question}`, {
-        maxResults: 5, maxTokens: 500, includeImages: false,
-    });
-    const docs = JSON.stringify(search.results);
-    console.log(docs);
-    return { web_docs: search.results.map(r => r.content || r.title) };
+const rewriteQueryModel = model.withStructuredOutput(z.object({
+    query: z.string().describe("Short web search query (6-14 keywords only)")
+}));
+
+const rewriteQueryForWebSearch = async (state: typeof GraphState.State) => {
+    const result = await rewriteQueryModel.invoke(`
+        Rewrite this question into a short web search query (6-14 keywords only).
+        Do NOT answer the question.
+        question: ${state.question}
+    `);
+    console.log("Rewritten query:", result.query);
+    return { web_query: result.query };
 }
 
-const  route_after_eval = (state: typeof GraphState.State) => {
-    if(state.verdict.includes('CORRECT')){
-        return "filter"
-    }else if(state.verdict.includes('INCORRECT')){
-        return 'web_search'
-    }else {
-        return 'ambiguous'
-    }
+const getDocsFromWebSearch = async (state: typeof GraphState.State) => {
+
+    const search = await tvly.search(`${state.web_query}`, {
+        maxResults: 3, maxTokens: 50, includeImages: false,
+    });
+
+    const web_docs = search.results
+        .map(r =>  r.content || r.title)
+        .filter(Boolean) as string[];
+
+    console.log(`Web search  \n ${state.web_query}`); 
+    console.log(`Web search returned ${web_docs.length} docs`);
+
+    const docs = state.verdict === 'AMBIGUOUS' ? [...state.good_docs,...web_docs] : web_docs
+
+    return {web_docs: docs };
+}
+
+const route_after_eval = (state: typeof GraphState.State) => {
+    if (state.verdict === 'CORRECT')   return 'filter';
+     return 'rewrite_query';
 }
 
 
 // --- WORKFLOW ---
 
 const app = new StateGraph(GraphState)
-    .addNode("retrieve", retrieveNode)
+    .addNode('retrieve', retrieveNode)
     .addNode('evaluator',docEvalScoreNode)
+    .addNode('rewrite_query',rewriteQueryForWebSearch)
     .addNode('web_search',getDocsFromWebSearch)
-    .addNode("filter",   filterNode)
-    .addNode("generate", generateNode)
-    .addEdge(START,      "retrieve")
-    .addEdge("retrieve", "evaluator")
+    .addNode('filter',   filterNode)
+    .addNode('generate', generateNode)
+    .addEdge(START,      'retrieve')
+    .addEdge('retrieve', 'evaluator')
     .addConditionalEdges(
         'evaluator',
         route_after_eval,
         {
-          web_search: 'web_search',
+          rewrite_query: 'rewrite_query',
           filter:     'filter',
-          ambiguous:  'web_search',
+          ambiguous:  'rewrite_query',
         }
     )
-    .addEdge("filter",   "generate")
-    .addEdge("generate", END)
+    .addEdge('rewrite_query','web_search')
+    .addEdge('web_search', 'filter')
+    .addEdge('filter',     'generate')
+    .addEdge('generate', END)
     .compile();
 
-const result = await app.invoke({ question: "what is the capital of india" });
+const result = await app.invoke({ question: "Explain attention mechanism" });
 console.log("\nAnswer:", result.answer);    
 
+console.log("\n verdict:", result.verdict); 
